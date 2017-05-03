@@ -1,0 +1,33 @@
+# port to listen on
+#FLOW_PORT=2055
+
+# local ip. if configured flow-capture will only ps flows sent to this ip.
+#FLOW_LOCAL_IP=0
+
+# remote ip. If this is configured only flows from this exporter will be accepted
+# by default we will accept any flows sent to us
+#FLOW_REMOTE_IP=0
+
+# dir we will be saving flows and working in
+#FLOW_WORKDIR=/var/lib/flow
+
+# user to run as
+#FLOW_USER=flow
+
+# This is the default and should be left unless you know what you are doing
+#FLOW_VER=5
+
+# You probably don't want to change this, but in case you do - nest level
+#FLOW_NEST=0
+
+# Retain the maximum number of files so that the total storage is less than SIZE
+# The letters b,K,M,G can be used as multipliers, ie 16 Megabytes is 16M.
+#FLOW_SIZE=1G
+
+# number of rotations per day
+#FLOW_ROTATIONS=287
+
+# program used to rotate 
+#FLOW_ROTATE_PROG="/var/lib/flow/rotate.sh"
+
+#FLOW_ARGS=

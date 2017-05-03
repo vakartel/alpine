@@ -1,0 +1,106 @@
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Maintainer: Valery Kartel <valery.kartel@gmail.com>
+pkgname=flow-tools
+pkgver=0.68.5.1
+pkgrel=0
+_pkgreal=flow
+pkgdesc="Tool set for working with NetFlow data"
+url="https://code.google.com/p/flow-tools"
+arch="all"
+license="BSD"
+options="!check"
+install="$_pkgreal-capture.pre-install"
+pkgusers=$_pkgreal
+pkggroups=$_pkgreal
+depends_dev="perl"
+makedepends="zlib-dev"
+subpackages="$pkgname-doc libft-dev libft:libs
+	$_pkgreal-capture $_pkgreal-log2rrd::noarch
+	$_pkgreal-rptfmt::noarch $_pkgreal-rpt2rrd::noarch
+	"
+_tools="cat dscan expire export fanout filter gen header import
+	mask merge nfilter print receive report send split stat tag xlate"
+_tools_list="$_pkgreal-capture"
+for _tool in $_tools; do
+	subpackages="$subpackages $_pkgreal-$_tool:_tool"
+	_tools_list="$_tools_list $_pkgreal-$_tool"
+done
+source="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/$pkgname/$pkgname-$pkgver.tar.bz2
+	$_pkgreal-capture.initd
+	$_pkgreal-capture.confd"
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	default_prepare || return 1
+
+	cd "$builddir"
+	local file
+	for file in bin/flow-rpt*; do
+		sed -i -e "s:/usr/local/netflow/var:/etc/$_pkgreal:" $file || return 1
+	done
+	update_config_sub
+}
+
+build() {
+	cd "$builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--target=$CTARGET \
+		--prefix=/usr \
+		--sysconfdir=/etc/$_pkgreal \
+		--localstatedir=/var/lib/$_pkgreal \
+		|| return 1
+	make
+}
+
+package() {
+	depends=$_tools_list
+	make -C "$builddir" DESTDIR="$pkgdir" install
+}
+
+dev() {
+	default_dev || return 1
+
+	mkdir -p "$subpkgdir"/usr || return 1
+	mv "$pkgdir"/usr/share "$subpkgdir"/usr || return 1
+}
+
+libs() {
+	default_libs || return 1
+	mv "$pkgdir"/etc "$subpkgdir" || return 1
+}
+
+_tool() {
+	pkgdesc="$pkgdesc (${subpkgname#$_pkgreal-} tool)"
+	mkdir -p "$subpkgdir"/usr/bin || return 1
+	mv "$pkgdir"/usr/bin/$subpkgname "$subpkgdir"/usr/bin || return 1
+}
+
+capture() {
+	_tool || return 1
+	install -Dm644 "$srcdir"/$subpkgname.confd \
+		"$subpkgdir"/etc/conf.d/$subpkgname || return 1
+	install -Dm755 "$srcdir"/$subpkgname.initd \
+		"$subpkgdir"/etc/init.d/$subpkgname || return 1
+	install -Dm750 -o $_pkgreal -g $_pkgreal -d "$subpkgdir"/var/lib/$_pkgreal
+}
+
+rptfmt() {
+	_tool || return 1
+	depends="python2"
+}
+
+rpt2rrd() {
+	_tool || return 1
+	depends="python2 py-rrd"
+}
+
+log2rrd() {
+	_tool || return 1
+	depends="python2 py-rrd"
+}
+
+sha512sums="ae17ba39854daa8ef3deecd3a554bb6d1fa47648cb791d8225a40bec13f65bf0692871660b2c3490d133b1251875c323d066bb0c0483eceb0707cec9b7714c57  flow-tools-0.68.5.1.tar.bz2
+3692d8ae28de6b7aea65714ba66f7f561a0f40500dc79804f02d631c1eb2ba72caf97018a08b3e1ee89c1df1f1e50c845646911224299871d208af9254db4200  flow-capture.initd
+1716f9dfc8ac23aedce95cc692f18f4b17865748aa63780347b94eb8fbc78f6509a66438bd07fa9e0871bba05f03a129ef084615533d513b625320f3eb3bb373  flow-capture.confd"

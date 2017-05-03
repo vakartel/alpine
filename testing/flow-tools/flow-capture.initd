@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+
+name="NetFlow capture"
+command=/usr/bin/flow-capture
+command_args="$FLOW_ARGS \
+	${FLOW_VER:+-V $FLOW_VER} \
+	${FLOW_NEST:+-N $FLOW_NEST} \
+	${FLOW_SIZE:+-E $FLOW_SIZE} \
+	${FLOW_ROTATIONS:+-n $FLOW_ROTATIONS} \
+	${FLOW_ROTATE_PROG:+-R $FLOW_ROTATE_PROG} \
+	-D -w ${FLOW_WORKDIR:-/var/lib/flow} ${FLOW_LOCAL_IP:-0}/${FLOW_REMOTE_IP:-0}/${FLOW_PORT:-2055}"
+command_background=yes
+pidfile=/run/$RC_SVCNAME.pid
+start_stop_daemon_args="-u ${FLOW_USER:-flow}"
+
+depend() {
+	need net localmount
+}
